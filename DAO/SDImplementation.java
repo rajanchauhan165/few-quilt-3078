@@ -1,7 +1,9 @@
 package DAO;
 
 import BeanClasses.Courses;
+import BeanClasses.Student;
 import DatabaseUtility.DatabaseConnection;
+import Exceptions.StudentException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -49,7 +51,7 @@ public class SDImplementation implements SystemDAO{
     }
 
     @Override
-    public String deleteCourse(int id) {
+    public String deleteCourse(int id)throws StudentException {
         String output = null;
 
         try(Connection conn = DatabaseConnection.provideConnection()){
@@ -58,6 +60,8 @@ public class SDImplementation implements SystemDAO{
             int x = ps.executeUpdate();
             if(x>0){
                 output = "Course deleted Successfully Of Id "+id;
+            }else {
+                throw new StudentException("Course not fount");
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -85,5 +89,30 @@ public class SDImplementation implements SystemDAO{
         }
 
         return res;
+    }
+
+    @Override
+    public Student studentLogin(String email, String password) throws StudentException {
+        Student student = null;
+
+        try (Connection conn = DatabaseConnection.provideConnection()) {
+            PreparedStatement ps = conn.prepareStatement("select * from student where email=? and password=?");
+            ps.setString(1,email);
+            ps.setString(2,password);
+            ResultSet rs = ps.executeQuery();
+            if(rs.next()){
+                int getroll = rs.getInt("roll");
+                String getName = rs.getString("name");
+                String getEmail = rs.getString("email");
+                String getPassword = rs.getString("password");
+                int getcid = rs.getInt("courseid");
+                student = new Student(getroll,getName,getEmail,getPassword,getcid);
+            }
+            else throw new StudentException("Invalid Username or Password.");
+        } catch (SQLException e) {
+            throw new StudentException(e.getMessage());
+        }
+
+        return student;
     }
 }
