@@ -1,4 +1,4 @@
-import Methods.Demo;
+package Methods;
 
 import java.util.Scanner;
 
